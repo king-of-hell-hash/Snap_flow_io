@@ -22,7 +22,6 @@ import {
   Edit3
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { logUsage } from '../utils/history';
 
 export const PdfConverter: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
@@ -80,8 +79,6 @@ export const PdfConverter: React.FC = () => {
       setEditedText(parsed.fullText);
       setSelectedPage(1);
       setStatusMessage('Conversion Complete!');
-
-      logUsage('pdf-to-word', `Converted ${file.name}`);
 
       confetti({
         particleCount: 60,

@@ -1,4 +1,4 @@
-export type TabType = 'downloader' | 'pdf' | 'utilities' | 'image-converter' | 'code' | 'ai-assistant' | 'history';
+export type TabType = 'downloader' | 'pdf' | 'utilities' | 'image-converter' | 'code' | 'about' | 'privacy' | 'terms' | 'disclaimer' | 'contact';
 
 export type PlatformType = 'tiktok' | 'instagram' | 'youtube' | 'auto' | 'other';
 

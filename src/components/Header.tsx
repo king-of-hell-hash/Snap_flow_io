@@ -79,17 +79,6 @@ export const Header: React.FC<HeaderProps> = ({
       icon: <ImageIcon className="w-4 h-4" />,
     },
     {
-      id: 'ai-assistant',
-      label: 'AI Assistant',
-      icon: <Bot className="w-4 h-4" />,
-      badge: 'Flash Lite',
-    },
-    {
-      id: 'history',
-      label: 'History',
-      icon: <History className="w-4 h-4" />,
-    },
-    {
       id: 'code',
       label: 'Vercel / Vanilla Code',
       icon: <Code2 className="w-4 h-4" />,

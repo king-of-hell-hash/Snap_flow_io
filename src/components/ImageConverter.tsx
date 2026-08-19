@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Download, Loader2, Sparkles, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { logUsage } from '../utils/history';
 
 export const ImageConverter: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
@@ -72,8 +71,6 @@ export const ImageConverter: React.FC = () => {
 
       const blob = await response.blob();
       setConvertedUrl(URL.createObjectURL(blob));
-
-      logUsage('image-to-webp', `Converted ${selectedFile.name}`);
 
       confetti({
         particleCount: 60,

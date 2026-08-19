@@ -94,13 +94,48 @@ export const Footer: React.FC<FooterProps> = ({
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
               Legal & Usage
             </h4>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-              This utility is intended for personal archiving of public content. Please respect copyright laws and content creators' rights.
-            </p>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pt-1">
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <span>Optimized for High-Speed Edge Delivery</span>
-            </div>
+            <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+              <li>
+                <button
+                  onClick={() => setActiveTab('about')}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                >
+                  About Us
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setActiveTab('privacy')}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                >
+                  Privacy Policy
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setActiveTab('terms')}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                >
+                  Terms & Conditions
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setActiveTab('disclaimer')}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                >
+                  Disclaimer
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setActiveTab('contact')}
+                  className="hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer"
+                >
+                  Contact Us
+                </button>
+              </li>
+            </ul>
           </div>
 
         </div>

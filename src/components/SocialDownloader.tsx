@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   PlatformType, 
-  VideoMetadata, 
-  DownloadHistoryItem 
+  VideoMetadata
 } from '../types';
 import { 
   Download, 
@@ -14,8 +13,6 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2, 
-  Trash2, 
-  History, 
   Copy, 
   Play, 
   Volume2, 
@@ -28,7 +25,6 @@ import {
   Share2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { logUsage } from '../utils/history';
 
 const SAMPLE_LINKS = [
   {
@@ -58,22 +54,9 @@ export const SocialDownloader: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VideoMetadata | null>(null);
-  const [history, setHistory] = useState<DownloadHistoryItem[]>([]);
   const [downloadingFormat, setDownloadingFormat] = useState<string | null>(null);
   const [previewMediaOpen, setPreviewMediaOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
-
-  // Load history from localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('omni_download_history');
-      if (saved) {
-        setHistory(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.warn('Failed to parse history from localStorage', e);
-    }
-  }, []);
 
   // Auto detect platform as user types or pastes
   useEffect(() => {
@@ -124,18 +107,31 @@ export const SocialDownloader: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: targetUrl,
-          platform: overridePlatform || platform,
         }),
       });
 
       clearTimeout(timer);
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to fetch video stream. Please check link validity.');
+      if (!response.ok || data.status === 'error' || data.error) {
+        throw new Error(data.error || data.text || 'Failed to fetch video stream. Please check link validity.');
       }
 
-      setResult(data);
+      // Map Cobalt API response to VideoMetadata UI state
+      setResult({
+        platform: platform || 'auto',
+        title: "Video Ready for Download",
+        author: "Social Media Source",
+        authorName: "Content Creator",
+        thumbnail: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&auto=format&fit=crop&q=80",
+        downloadUrlMp4: data.url || "",
+        downloadUrlMp4Hd: data.url || "",
+        downloadUrlMp3: data.url || "",
+        sizeMp4: "Optimized",
+        sizeMp3: "Standard",
+        dimensions: "Original",
+        isDemoFallback: false
+      });
       setStatusMessage('Stream Ready for High Speed Download!');
     } catch (err: any) {
       console.error('Fetch error:', err);
@@ -174,34 +170,12 @@ export const SocialDownloader: React.FC = () => {
         origin: { y: 0.75 },
       });
 
-      // Save to download history
-      const historyItem: DownloadHistoryItem = {
-        id: Date.now().toString(),
-        title: result.title || 'Video Media',
-        platform: result.platform,
-        thumbnail: result.thumbnail,
-        format: formatName,
-        date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        url: downloadUrl,
-      };
-
-      const updatedHistory = [historyItem, ...history.filter(h => h.id !== historyItem.id)].slice(0, 10);
-      setHistory(updatedHistory);
-      localStorage.setItem('omni_download_history', JSON.stringify(updatedHistory));
-
-      logUsage('social-download', `Downloaded ${formatName} from ${result.platform}`);
-
     } catch (e) {
       console.error('Download trigger error:', e);
       window.open(downloadUrl, '_blank');
     } finally {
       setTimeout(() => setDownloadingFormat(null), 1000);
     }
-  };
-
-  const clearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem('omni_download_history');
   };
 
   const copyShareLink = () => {
@@ -595,59 +569,6 @@ export const SocialDownloader: React.FC = () => {
         </div>
       )}
 
-      {/* Download History Section */}
-      {history.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 text-left">
-          <div className="flex items-center justify-between mb-3 border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
-            <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-indigo-500" />
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                Recent Downloads History ({history.length})
-              </h3>
-            </div>
-            <button
-              onClick={clearHistory}
-              className="text-xs text-rose-500 hover:text-rose-600 flex items-center gap-1 cursor-pointer font-medium"
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Clear History
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {history.map((item) => (
-              <div
-                key={item.id}
-                className="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 flex items-center gap-3 hover:border-indigo-300 transition"
-              >
-                <img
-                  src={item.thumbnail}
-                  alt={item.title}
-                  referrerPolicy="no-referrer"
-                  className="w-12 h-12 rounded-lg object-cover bg-slate-200 dark:bg-slate-700 shrink-0"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
-                    {item.title}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
-                    <span className="uppercase font-bold text-indigo-500">{item.format}</span>
-                    <span>•</span>
-                    <span>{item.date}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => window.open(item.url, '_blank')}
-                  title="Re-download stream"
-                  className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 hover:bg-indigo-100 cursor-pointer shrink-0"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Feature Highlights Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60">
@@ -679,6 +600,160 @@ export const SocialDownloader: React.FC = () => {
             Direct high-speed streaming without speed throttling or cross-origin popup blocks.
           </p>
         </div>
+      </div>
+
+      {/* SEO & Content Section for AdSense & Rankings */}
+      <div className="mt-16 text-left max-w-4xl mx-auto space-y-10 border-t border-slate-200 dark:border-slate-800 pt-12 pb-8">
+        
+        <article className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mb-6 leading-tight">
+            Free Social Media Video Downloader Without Watermark
+          </h1>
+          
+          <section className="mb-10">
+            <p className="text-sm sm:text-base leading-relaxed">
+              Welcome to SnapFlow.io, your ultimate all-in-one solution for downloading high-quality videos from your favorite social media platforms. In today's fast-paced digital world, saving inspiring content offline should be quick, easy, and completely free. Our <strong>Social Media Video Downloader</strong> empowers you to save TikToks, Instagram Reels, and YouTube Shorts directly to your device. Best of all? We automatically remove those annoying, screen-obstructing watermarks from supported platforms, delivering a crystal-clear, high-definition MP4 file ready for your personal archives. 
+            </p>
+            <p className="text-sm sm:text-base leading-relaxed mt-4">
+              Whether you are a content creator looking to back up your own portfolio, a student saving educational Shorts for offline study, or just someone curating an aesthetic mood board, our web-based utility ensures you get the raw file instantly. There is no software to install, no sketchy browser extensions, and absolutely no registration required. Just paste the public URL and hit download.
+            </p>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">
+              How to Use the Downloader
+            </h2>
+            <p className="text-sm mb-4">Downloading your favorite social media clips takes less than 10 seconds. Follow these three simple steps:</p>
+            <ol className="list-decimal pl-5 space-y-3 text-sm">
+              <li>
+                <strong>Copy the Video Link:</strong> Open the TikTok, Instagram, or YouTube app (or website). Navigate to the video you want to save, click the "Share" button, and select "Copy Link".
+              </li>
+              <li>
+                <strong>Paste into our Tool:</strong> Return to this page and paste the copied URL into the central input bar above. Our engine will automatically detect the platform (or you can select it manually from the dropdown menu).
+              </li>
+              <li>
+                <strong>Click Download:</strong> Hit the "Get Download Links" button. Within seconds, you'll be presented with options to download the High Definition (HD) MP4 video, the Standard Definition (SD) video, or even extract the background audio track as a high-quality 320kbps MP3 file.
+              </li>
+            </ol>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">
+              Supported Platforms
+            </h2>
+            <p className="text-sm mb-4">Our downloading engine is optimized to handle URLs from the world's most popular short-form video networks:</p>
+            <ul className="list-disc pl-5 space-y-2 text-sm">
+              <li><strong>TikTok:</strong> Download viral dances, tutorials, and trends. We automatically parse the URL and provide a completely watermark-free video file.</li>
+              <li><strong>Instagram Reels:</strong> Save inspiring travel clips, fitness routines, and creator content directly in 1080p resolution.</li>
+              <li><strong>YouTube Shorts:</strong> Archive educational snippets, podcast highlights, and entertainment bites without needing a premium subscription.</li>
+            </ul>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">
+              Key Features
+            </h2>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4">
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <span><strong>100% Free Forever:</strong> No premium tiers, no hidden fees, and no credit card required.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <span><strong>No Software Required:</strong> Fully web-based. Works on Chrome, Safari, Edge, and Firefox.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <span><strong>High Quality MP4 & MP3:</strong> Retain the original 1080p video quality or extract crystal-clear audio tracks.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <span><strong>Secure & Private:</strong> We don't save your downloaded videos on our servers. Your connection is encrypted.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <span><strong>Universal Device Compatibility:</strong> Works flawlessly on PC, Mac, iPhone (iOS), Android, and Tablets.</span>
+              </li>
+            </ul>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-200 dark:border-slate-800 pb-2">
+              Frequently Asked Questions (FAQ)
+            </h2>
+            <div className="space-y-6 text-sm">
+              <div>
+                <h3 className="font-bold text-base text-slate-800 dark:text-slate-200">Is it legal to download social media videos?</h3>
+                <p className="mt-1">Yes, downloading videos for personal, offline viewing is generally acceptable. However, you must respect copyright laws. You should not download copyrighted content to distribute, re-upload, or monetize without explicit permission from the original creator.</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-800 dark:text-slate-200">Where are the downloaded files saved on my device?</h3>
+                <p className="mt-1">By default, the files are saved to your device's "Downloads" folder. On a PC/Mac, you can check your browser's download history (Ctrl+J or Cmd+J). On mobile, check your "Files" app or the "Downloads" album in your gallery.</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-800 dark:text-slate-200">Do I need to pay or create an account to use this?</h3>
+                <p className="mt-1">Absolutely not. SnapFlow.io is completely free to use. We don't hide our tools behind paywalls, and we never ask you to create an account or provide an email address just to download a file.</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-800 dark:text-slate-200">Can I download videos on my iPhone or Android?</h3>
+                <p className="mt-1">Yes! Our website is fully responsive and mobile-friendly. You can use it natively in Safari or Chrome on your smartphone just as easily as on a desktop computer.</p>
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-800 dark:text-slate-200">Are there any limits on the number of downloads?</h3>
+                <p className="mt-1">We do not enforce hard limits on the number of downloads per user. You can download as many videos or audio tracks as you need. We only ask that you do not use automated bots to spam our servers.</p>
+              </div>
+            </div>
+          </section>
+
+        </article>
+
+        {/* JSON-LD Schema Markup for FAQ (Good for SEO) */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Is it legal to download social media videos?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, downloading videos for personal, offline viewing is generally acceptable. However, you must respect copyright laws. You should not download copyrighted content to distribute, re-upload, or monetize without explicit permission from the original creator."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Where are the downloaded files saved on my device?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "By default, the files are saved to your device's 'Downloads' folder. On a PC/Mac, you can check your browser's download history. On mobile, check your 'Files' app or the 'Downloads' album in your gallery."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Do I need to pay or create an account to use this?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Absolutely not. SnapFlow.io is completely free to use. We don't hide our tools behind paywalls, and we never ask you to create an account or provide an email address just to download a file."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I download videos on my iPhone or Android?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! Our website is fully responsive and mobile-friendly. You can use it natively in Safari or Chrome on your smartphone just as easily as on a desktop computer."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Are there any limits on the number of downloads?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "We do not enforce hard limits on the number of downloads per user. You can download as many videos or audio tracks as you need. We only ask that you do not use automated bots to spam our servers."
+              }
+            }
+          ]
+        }) }} />
       </div>
 
     </div>

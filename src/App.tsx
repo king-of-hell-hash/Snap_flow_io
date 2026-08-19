@@ -9,8 +9,7 @@ import { AdBanner } from './components/AdBanner';
 import { AdConfigModal } from './components/AdConfigModal';
 import { Footer } from './components/Footer';
 import { ImageConverter } from './components/ImageConverter';
-import AIAssistant from './components/AIAssistant';
-import HistoryTab from './components/HistoryTab';
+import { PolicyPage } from './components/PolicyPage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('downloader');
@@ -112,26 +111,6 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'ai-assistant' && (
-          <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
-            <div className="text-center mb-6">
-              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">AI Assistant</h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-2">Get quick help, ask questions, or process text instantly using Gemini Flash Lite.</p>
-            </div>
-            <AIAssistant />
-          </div>
-        )}
-
-        {activeTab === 'history' && (
-          <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
-            <div className="text-center mb-6">
-              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Usage History</h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-2">Your recent activity, file conversions, and downloads across SnapFlow.</p>
-            </div>
-            <HistoryTab />
-          </div>
-        )}
-
         {activeTab === 'utilities' && (
           <div className="space-y-8 animate-fade-in">
             <UtilityTools />
@@ -141,6 +120,12 @@ export default function App() {
         {activeTab === 'code' && (
           <div className="space-y-8 animate-fade-in">
             <CodeExportModal />
+          </div>
+        )}
+
+        {['about', 'privacy', 'terms', 'disclaimer', 'contact'].includes(activeTab) && (
+          <div className="space-y-8 animate-fade-in bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <PolicyPage pageType={activeTab as any} />
           </div>
         )}
 
