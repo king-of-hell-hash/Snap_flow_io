@@ -1,0 +1,6 @@
+{
+  "name": "OmniUtility & Social Media Downloader Hub",
+  "description": "Fast, responsive web utility hub featuring a Social Media Video & Audio Downloader (TikTok, Reels, Shorts), Client-Side PDF to Word & Text Converter, and Monetization/AdSense containers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

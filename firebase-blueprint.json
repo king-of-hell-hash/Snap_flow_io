@@ -1,0 +1,38 @@
+{
+  "entities": {
+    "UsageLog": {
+      "title": "Usage Log",
+      "description": "Records of user actions (e.g., file conversions, downloads).",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who performed the action",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\\\-]+$"
+        },
+        "actionType": {
+          "type": "string",
+          "description": "Type of action (e.g., 'image-convert', 'pdf-convert')",
+          "maxLength": 50
+        },
+        "details": {
+          "type": "string",
+          "description": "Additional details like filename",
+          "maxLength": 256
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp of the action"
+        }
+      },
+      "required": ["userId", "actionType", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/usageLogs/{logId}": {
+      "schema": "UsageLog",
+      "description": "Stores user usage logs for history tracking"
+    }
+  }
+}
